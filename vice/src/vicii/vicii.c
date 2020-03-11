@@ -192,12 +192,14 @@ inline void vicii_delay_clk(void)
 inline void vicii_handle_pending_alarms(int num_write_cycles)
 {
     if (vicii.viciie != 0) {
+        //log_message(LOG_ERR, "[vicii.c] Getting ready to delay clk.");
         vicii_delay_clk();
     }
 
+    //log_message(LOG_ERR, "[vicii.c] Checking num write cycles.");
     if (num_write_cycles != 0) {
         int f;
-
+        //log_message(LOG_ERR, "[vicii.c] Num write cycles != 0.");
         /* Cycles can be stolen only during the read accesses, so we serve
            only the events that happened during them.  The last read access
            happened at `clk - maincpu_write_cycles()' as all the opcodes
@@ -212,6 +214,7 @@ inline void vicii_handle_pending_alarms(int num_write_cycles)
         do {
             f = 0;
             if (maincpu_clk > vicii.fetch_clk) {
+                ////log_message(LOG_ERR, "[vicii.c] Getting ready to fetch alarm handler");
                 vicii_fetch_alarm_handler(0, NULL);
                 f = 1;
                 if (vicii.viciie != 0) {
@@ -219,6 +222,7 @@ inline void vicii_handle_pending_alarms(int num_write_cycles)
                 }
             }
             if (maincpu_clk >= vicii.draw_clk) {
+                ////log_message(LOG_ERR, "[vicii.c] Getting ready to call raster draw alarm handler");
                 vicii_raster_draw_alarm_handler((CLOCK)(maincpu_clk - vicii.draw_clk), NULL);
                 f = 1;
                 if (vicii.viciie != 0) {
@@ -235,11 +239,13 @@ inline void vicii_handle_pending_alarms(int num_write_cycles)
            the second write access).  */
         maincpu_clk += num_write_cycles;
     } else {
+        //log_message(LOG_ERR, "[vicii.c] Num write cycles == 0.");
         int f;
 
         do {
             f = 0;
             if (maincpu_clk >= vicii.fetch_clk) {
+                //log_message(LOG_ERR, "[vicii.c] Getting ready to fetch alarm handler");
                 vicii_fetch_alarm_handler(0, NULL);
                 f = 1;
                 if (vicii.viciie != 0) {
@@ -247,6 +253,7 @@ inline void vicii_handle_pending_alarms(int num_write_cycles)
                 }
             }
             if (maincpu_clk >= vicii.draw_clk) {
+                //log_message(LOG_ERR, "[vicii.c] Getting ready to call raster draw alarm handler");
                 vicii_raster_draw_alarm_handler(0, NULL);
                 f = 1;
                 if (vicii.viciie != 0) {
@@ -256,6 +263,8 @@ inline void vicii_handle_pending_alarms(int num_write_cycles)
         }
         while (f);
     }
+    
+    //log_message(LOG_ERR, "[vicii.c] Done handling pending alarms");
 }
 
 void vicii_handle_pending_alarms_external(int num_write_cycles)
@@ -558,28 +567,39 @@ void vicii_reset(void)
 
 void vicii_reset_registers(void)
 {
+
+    //log_message(LOG_ERR, "[vicii.e] Starting register reset sequence.\n");
     uint16_t i;
 
     if (!vicii.initialized) {
         return;
     }
 
-    if (!vicii.viciidtv) {
+    if (!vicii.viciidtv) 
+    {
+        //log_message(LOG_ERR, "[vicii.e] No viciidtv.  Getting ready to store vicii.\n");
         for (i = 0; i <= 0x3f; i++) {
+            //log_message(LOG_ERR, "[vicii.e] Clearing register %d.", i);
             vicii_store(i, 0);
         }
-    } else {
+    } else 
+    {
+        //log_message(LOG_ERR, "[vicii.e] viciidtv.  Getting ready to store vicii in first loop\n");
         vicii.extended_enable = 1;
         vicii.extended_lockout = 0;
         for (i = 0; i <= 0x3e; i++) {
             vicii_store(i, 0);
         }
+        //log_message(LOG_ERR, "[vicii.e] viciidtv.  Getting ready to store vicii 0x36, 0x76\n");
         vicii_store(0x36, 0x76);
+        //log_message(LOG_ERR, "[vicii.e] viciidtv.  Getting ready to store vicii in second loop\n");
         for (i = 0x40; i <= 0x4f; i++) {
             vicii_store(i, 0);
         }
+        //log_message(LOG_ERR, "[vicii.e] viciidtv.  Getting ready to store vicii 0x3f, 0\n");
         vicii_store(0x3f, 0);
     }
+    //log_message(LOG_ERR, "[Machine.e] Getting ready to reset raster sprite status.\n");
     raster_sprite_status_reset(vicii.raster.sprite_status, vicii_sprite_offset());
 }
 
@@ -1211,12 +1231,14 @@ void vicii_raster_draw_alarm_handler(CLOCK offset, void *data)
     /* if the current line is between first and last displayed line, it is visible */
     /* additionally we must make sure not to skip lines within the range of active
        DMA, or certain effects will break in "no border" mode (see bug #3601657) */
+    ////log_message(LOG_ERR, "[vicii.c] Checking if line is in invisible area.");
     in_visible_area = (vicii.raster.current_line
                        >= ((vicii.first_dma_line < (unsigned int)vicii.first_displayed_line) ? vicii.first_dma_line : vicii.first_displayed_line))
                        && (vicii.raster.current_line
                        <= (((vicii.last_dma_line + 7) > (unsigned int)vicii.last_displayed_line) ? (vicii.last_dma_line + 7) : vicii.last_displayed_line));
 
     /* handle wrap if the first few lines are displayed in the visible lower border */
+    ////log_message(LOG_ERR, "[vicii.c] Checking if line needs to be wrapped.");
     if ((unsigned int)vicii.last_displayed_line >= vicii.screen_height) {
         in_visible_area |= vicii.raster.current_line
                            <= ((unsigned int)vicii.last_displayed_line - vicii.screen_height);
@@ -1226,8 +1248,10 @@ void vicii_raster_draw_alarm_handler(CLOCK offset, void *data)
 
     vicii_sprites_reset_xshift();
 
+    ////log_message(LOG_ERR, "[vicii.c] Getting ready to emulate raster line");
     raster_line_emulate(&vicii.raster);
 
+    ////log_message(LOG_ERR, "[vicii.c] Done emulating raster line.");
 #if 0
     if (vicii.raster.current_line >= 60 && vicii.raster.current_line <= 60) {
         char buf[1000];
@@ -1244,9 +1268,11 @@ void vicii_raster_draw_alarm_handler(CLOCK offset, void *data)
     }
 #endif
 
+    ////log_message(LOG_ERR, "[vicii.c] Checking if current raster line == 0");
     if (vicii.raster.current_line == 0) {
         /* no vsync here for NTSC  */
         if ((unsigned int)vicii.last_displayed_line < vicii.screen_height) {
+            //log_message(LOG_ERR, "[vicii.c] Getting ready to skip frame");
             raster_skip_frame(&vicii.raster,
                               vsync_do_vsync(vicii.raster.canvas,
                                              vicii.raster.skip_frame));
@@ -1256,6 +1282,7 @@ void vicii_raster_draw_alarm_handler(CLOCK offset, void *data)
         vicii.light_pen.triggered = 0;
 
         if (vicii.light_pen.state) {
+            //log_message(LOG_ERR, "[vicii.c] Getting ready to trigger light pen");
             vicii_trigger_light_pen(maincpu_clk);
         }
 
@@ -1266,10 +1293,12 @@ void vicii_raster_draw_alarm_handler(CLOCK offset, void *data)
 
             /* Scheduled Blitter */
             if (blitter_on_irq & 0x40) {
+                ////log_message(LOG_ERR, "[vicii.c] Getting ready to trigger light blitter");
                 c64dtvblitter_trigger_blitter();
             }
             /* Scheduled DMA */
             if (dma_on_irq & 0x40) {
+                ////log_message(LOG_ERR, "[vicii.c] Getting ready to trigger light dma");
                 c64dtvdma_trigger_dma();
             }
 
@@ -1281,15 +1310,18 @@ void vicii_raster_draw_alarm_handler(CLOCK offset, void *data)
 
             /* HACK to fix greetings in 2008 */
             if (vicii.video_mode == VICII_8BPP_PIXEL_CELL_MODE) {
+                //log_message(LOG_ERR, "[vicii.c] Getting ready to update memory ptrs");
                 vicii_update_memory_ptrs(VICII_RASTER_CYCLE(maincpu_clk));
             }
         }
 
     }
-
+ 
+    ////log_message(LOG_ERR, "[vicii.c] Checking for vsync for NTSC");
     /* vsync for NTSC */
     if ((unsigned int)vicii.last_displayed_line >= vicii.screen_height
         && vicii.raster.current_line == vicii.last_displayed_line - vicii.screen_height + 1) {
+         //log_message(LOG_ERR, "[vicii.c] Getting ready to skip frame.");
         raster_skip_frame(&vicii.raster,
                           vsync_do_vsync(vicii.raster.canvas,
                                          vicii.raster.skip_frame));
@@ -1303,6 +1335,7 @@ void vicii_raster_draw_alarm_handler(CLOCK offset, void *data)
         }
     }
 
+    ////log_message(LOG_ERR, "[vicii.c] Checking again for invisible area");
     if (in_visible_area) {
         if (!vicii.idle_state) {
             vicii.mem_counter = (vicii.mem_counter + vicii.mem_counter_inc) & 0x3ff;
@@ -1364,12 +1397,14 @@ void vicii_raster_draw_alarm_handler(CLOCK offset, void *data)
     if (vicii_resources.sprite_sprite_collisions_enabled
         && vicii.raster.sprite_status->sprite_sprite_collisions != 0
         && !prev_sprite_sprite_collisions) {
+        ////log_message(LOG_ERR, "[vicii.c] Getting ready to sscroll set");
         vicii_irq_sscoll_set();
     }
 
     if (vicii_resources.sprite_background_collisions_enabled
         && vicii.raster.sprite_status->sprite_background_collisions
         && !prev_sprite_background_collisions) {
+        ////log_message(LOG_ERR, "[vicii.c] Getting ready to sbcroll set");
         vicii_irq_sbcoll_set();
     }
 
@@ -1388,7 +1423,10 @@ void vicii_raster_draw_alarm_handler(CLOCK offset, void *data)
     /* Set the next draw event.  */
     vicii.last_emulate_line_clk += vicii.cycles_per_line;
     vicii.draw_clk = vicii.last_emulate_line_clk + vicii.draw_cycle;
+    ////log_message(LOG_ERR, "[vicii.c] Getting ready set alarm");
     alarm_set(vicii.raster_draw_alarm, vicii.draw_clk);
+    
+    ////log_message(LOG_ERR, "[vicii.c] Done handling raster alarm.");
 }
 
 void vicii_set_canvas_refresh(int enable)

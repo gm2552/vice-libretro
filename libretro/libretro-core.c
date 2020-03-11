@@ -2168,62 +2168,25 @@ void retro_set_environment(retro_environment_t cb)
    cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
 
    unsigned version = 0;
-   if (!cb(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version))
-   {
+   //if (!cb(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version))
+   //{
       /* Only log the error if we were not called after retro_deinit */
+   //   if (log_cb)
+   //      log_cb(RETRO_LOG_WARN,"retro_set_environment: GET_CORE_OPTIONS_VERSION failed, not setting core-options now.\n");
+   //}
+   //else if (version == 1)
       if (log_cb)
-         log_cb(RETRO_LOG_WARN,"retro_set_environment: GET_CORE_OPTIONS_VERSION failed, not setting core-options now.\n");
-   }
-   else if (version == 1)
-      cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS, core_options);
-   else
-   {
-      /* Fallback for older API */
-
-      /* Use define because C doesn't care about const. */
-#define NUM_CORE_OPTIONS ( sizeof(core_options)/sizeof(core_options[0])-1 )
-      static struct retro_variable variables[NUM_CORE_OPTIONS+1];
-
-      /* Only generate variables once, it's as static as core_options */
-      if (!core_options_legacy_strings)
+        log_cb(RETRO_LOG_INFO,"retro_set_environment: Setting core options.\n");
+      
+      struct retro_core_options_intl core_options_intl;
+      core_options_intl.us    = core_options;
+      core_options_intl.local = NULL;
+      
+      if (!cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL, &core_options_intl))
       {
-         /* First pass: Calculate size of string-buffer required */
-         unsigned buf_len;
-         char *buf;
-         {
-            unsigned alloc_len=0;
-            struct retro_core_option_definition *o=core_options+NUM_CORE_OPTIONS-1;
-            struct retro_variable *rv=variables+NUM_CORE_OPTIONS-1;
-            for (; o>=core_options; --o, --rv)
-            {
-               int l=snprintf(0,0,"%s; %s",o->desc,o->default_value);
-               for (struct retro_core_option_value *v=o->values;v->value;++v)
-                  l+=snprintf(0,0,"|%s",v->value);
-               alloc_len+=l+1;
-            }
-            buf=core_options_legacy_strings=(char *)malloc(alloc_len);
-            buf_len=alloc_len;
-         }
-         /* Second pass: Fill string-buffer */
-         struct retro_core_option_definition *o=core_options+NUM_CORE_OPTIONS-1;
-         struct retro_variable *rv=variables+NUM_CORE_OPTIONS;
-         rv->key = rv->value = 0;
-         --rv;
-         for (; o>=core_options; --o, --rv)
-         {
-            int l=snprintf(buf,buf_len,"%s; %s",o->desc,o->default_value);
-            for (struct retro_core_option_value *v=o->values;v->value;++v)
-               l+=snprintf(buf+l,buf_len,"|%s",v->value);
-            rv->key = o->key;
-            rv->value = buf;
-            ++l;
-            buf+=l, buf_len-=l;
-         }
+         if (log_cb)
+           log_cb(RETRO_LOG_INFO,"Failed to set core options.\n");
       }
-      cb( RETRO_ENVIRONMENT_SET_VARIABLES, variables);
-#undef NUM_CORE_OPTIONS
-   }
-
    static bool allowNoGameMode;
    allowNoGameMode = true;
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &allowNoGameMode);
@@ -3163,61 +3126,63 @@ static void update_variables(void)
 
 
    /* Mapper */
-   var.key = "vice_mapper_select";
-   var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      mapper_keys[RETRO_DEVICE_ID_JOYPAD_SELECT] = keyId(var.value);
-   }
+   //var.key = "vice_mapper_select";
+   //var.value = NULL;
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      //mapper_keys[RETRO_DEVICE_ID_JOYPAD_SELECT] = keyId(var.value);
+      mapper_keys[RETRO_DEVICE_ID_JOYPAD_START] = RETRO_DEVICE_ID_JOYPAD_START;
+   //}
 
    var.key = "vice_mapper_start";
    var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      mapper_keys[RETRO_DEVICE_ID_JOYPAD_START] = keyId(var.value);
-   }
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      //mapper_keys[RETRO_DEVICE_ID_JOYPAD_START] = keyId(var.value);
+      mapper_keys[RETRO_DEVICE_ID_JOYPAD_SELECT] = RETRO_DEVICE_ID_JOYPAD_SELECT;
+   //}
 
    var.key = "vice_mapper_b";
    var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      mapper_keys[RETRO_DEVICE_ID_JOYPAD_B] = keyId(var.value);
-   }
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      mapper_keys[RETRO_DEVICE_ID_JOYPAD_B] = RETRO_DEVICE_ID_JOYPAD_B;//keyId(var.value);
+   //}
 
    var.key = "vice_mapper_a";
    var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      mapper_keys[RETRO_DEVICE_ID_JOYPAD_A] = keyId(var.value);
-   }
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      mapper_keys[RETRO_DEVICE_ID_JOYPAD_A] = RETRO_DEVICE_ID_JOYPAD_A;//keyId(var.value);
+   //}
 
    var.key = "vice_mapper_y";
    var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      mapper_keys[RETRO_DEVICE_ID_JOYPAD_Y] = keyId(var.value);
-   }
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      mapper_keys[RETRO_DEVICE_ID_JOYPAD_Y] = RETRO_DEVICE_ID_JOYPAD_Y;//keyId(var.value);
+   //}
 
    var.key = "vice_mapper_x";
    var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      mapper_keys[RETRO_DEVICE_ID_JOYPAD_X] = keyId(var.value);
-   }
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      mapper_keys[RETRO_DEVICE_ID_JOYPAD_X] = RETRO_DEVICE_ID_JOYPAD_X;//keyId(var.value);
+   //}
 
    var.key = "vice_mapper_l";
    var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      mapper_keys[RETRO_DEVICE_ID_JOYPAD_L] = keyId(var.value);
-   }
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      mapper_keys[RETRO_DEVICE_ID_JOYPAD_L] = RETRO_DEVICE_ID_JOYPAD_L;//keyId(var.value);
+   //}
 
    var.key = "vice_mapper_r";
    var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      mapper_keys[RETRO_DEVICE_ID_JOYPAD_R] = keyId(var.value);
-   }
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      mapper_keys[RETRO_DEVICE_ID_JOYPAD_R] = RETRO_DEVICE_ID_JOYPAD_R;//keyId(var.value);
+   //}
 
    var.key = "vice_mapper_l2";
    var.value = NULL;
@@ -3308,10 +3273,10 @@ static void update_variables(void)
 
    var.key = "vice_mapper_vkbd";
    var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      mapper_keys[24] = keyId(var.value);
-   }
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      mapper_keys[24] = RETRO_DEVICE_ID_JOYPAD_START;//keyId(var.value);
+   //}
 
    var.key = "vice_mapper_statusbar";
    var.value = NULL;

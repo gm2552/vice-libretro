@@ -866,12 +866,16 @@ static sound_t *fastsid_open(uint8_t *sidstate)
 
 static int fastsid_init(sound_t *psid, int speed, int cycles_per_sec, int factor)
 {
+    log_message(-1, "[fastsid.c] Initialing fast sid with speed %d and %d cycles per sec", speed, cycles_per_sec);
+
     uint32_t i;
     int sid_model;
 
     psid->factor = factor;
-
+    
+    log_message(-1, "[fastsid.c] Calulating psid speed1");
     psid->speed1 = (cycles_per_sec << 8) / speed;
+    log_message(-1, "[fastsid.c] Done calulating psid speed1");
     for (i = 0; i < 16; i++) {
         psid->adrs[i] = 500 * 8 * psid->speed1 / adrtable[i];
         psid->sz[i] = 0x8888888 * i;

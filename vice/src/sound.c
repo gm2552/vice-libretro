@@ -219,14 +219,20 @@ static sound_t *sound_machine_open(int chipno)
 
 static int sound_machine_init(sound_t *psid, int speed, int cycles_per_sec)
 {
+    //log_message(-1, "[sound.c] Initialing sound machine with speed %d and %d cycles per sec", speed, cycles_per_sec);
+
     int retval = 1;
     int i;
 
     for (i = 0; i < (offset >> 5); i++) {
         if (sound_calls[i]->init) {
+            //log_message(-1, "[sound.c] Initializing sound calls");
             retval &= sound_calls[i]->init(psid, speed, cycles_per_sec);
         }
     }
+    
+    //log_message(-1, "[sound.c] Done initialing sound machine with retval %d", retval);
+    
     return retval;
 }
 
@@ -395,6 +401,8 @@ static int set_playback_enabled(int value, void *param)
 
 static int set_sample_rate(int val, void *param)
 {
+    //log_message(-1, "[sound.c] Setting sample rate to %d.", val);
+
     if (val <= 0) {
         return -1;
     }
@@ -755,6 +763,8 @@ static int sound_device_count = 0;
 
 int sound_register_device(sound_device_t *pdevice)
 {
+    //log_message(-1, "[sound.c] Registering sound device %s", pdevice->name);
+
     if (sound_device_count < MAX_SOUND_DEVICES) {
         sound_devices[sound_device_count] = pdevice;
         sound_device_count++;
@@ -805,7 +815,7 @@ static int sound_error(const char *msg)
     sound_close();
 
     if (console_mode || video_disabled_mode) {
-        log_message(sound_log, "%s", msg);
+        //log_message(sound_log, "%s", msg);
     } else {
         char *txt = lib_msprintf("Sound: %s", msg);
         ui_error(txt);
@@ -880,13 +890,17 @@ static void fill_buffer(int size, int rise)
 /* open SID engine */
 static int sid_open(void)
 {
+    //log_message(-1, "[sound.c] Opening sid engine");
     int c;
 
     for (c = 0; c < snddata.sound_chip_channels; c++) {
         if (!(snddata.psid[c] = sound_machine_open(c))) {
+            //log_message(-1, "[sound.c] Error opening sid engine");
             return sound_error("Cannot open SID engine");
         }
     }
+
+    //log_message(-1, "[sound.c] Done opening sid engine");
 
     return 0;
 }
@@ -898,19 +912,25 @@ static int sid_init(void)
 
     /* Special handling for cycle based as opposed to sample based sound
        engines. reSID is cycle based. */
+    //log_message(-1, "[sound.c] Getting ready get cycle based");
     cycle_based = sound_machine_cycle_based();
 
     /* "No limit" doesn't make sense for cycle based sound engines,
        which have a fixed sampling rate. */
+    //log_message(-1, "[sound.c] Calculating speed factor");
     speed_factor = speed_percent ? speed_percent : 100;
+    
+    //log_message(-1, "[sound.c] Calculating speed using sample rate %d and speed factor %d", sample_rate, speed_factor);
     speed = sample_rate * 100 / speed_factor;
 
+    //log_message(-1, "[sound.c] Checking to initialize sound chip channels");
     for (c = 0; c < snddata.sound_chip_channels; c++) {
         if (!sound_machine_init(snddata.psid[c], speed, cycles_per_sec)) {
             return sound_error("Cannot initialize SID engine");
         }
     }
 
+    //log_message(-1, "[sound.c] Calculating clkstep");
     snddata.clkstep = SOUNDCLK_CONSTANT(cycles_per_sec) / sample_rate;
 
     snddata.origclkstep = snddata.clkstep;
@@ -918,6 +938,8 @@ static int sid_init(void)
     snddata.fclk = SOUNDCLK_CONSTANT(maincpu_clk);
     snddata.wclk = maincpu_clk;
     snddata.lastclk = maincpu_clk;
+
+    //log_message(-1, "[sound.c] Done with sid_init");
 
     return 0;
 }
@@ -955,18 +977,24 @@ int sound_open(void)
     char frag_str[8];
     double bufsize;
 
+
+    //log_message(-1, "[sound.c] Checking suspend time and disable time");
     if (suspend_time > 0 && disabletime) {
         return 1;
     }
 
     /* Opening the sound device and initializing the sound engine
        might take some time. */
+       
+    //log_message(-1, "[sound.c] Getting ready to suspend speed eval");    
     vsync_suspend_speed_eval();
 
     /* Second SID. */
+    //log_message(-1, "[sound.c] Getting ready to get sound machine channels");  
     snddata.sound_chip_channels = sound_machine_channels();
 
     playname = device_name;
+    //log_message(-1, "[sound.c] Checking play device name");  
     if (playname && playname[0] == '\0') {
         playname = NULL;
     }
@@ -987,11 +1015,17 @@ int sound_open(void)
     }
 
     /* Calculate buffer size in seconds. */
+    //log_message(-1, "[sound.c] Calculating buffer size in seconds");  
     bufsize = ((buffer_size < 1 || buffer_size > 1000)
                ? SOUND_SAMPLE_BUFFER_SIZE : buffer_size) / 1000.0;
+    //log_message(-1, "[sound.c] Calculating speed from sample rate %d", sample_rate);
     speed = (sample_rate < 8000 || sample_rate > 96000)
             ? SOUND_SAMPLE_RATE : sample_rate;
 
+    //log_message(-1, "[sound.c] Speed is %d", speed);
+    //log_message(-1, "[sound.c] Sample rate is %d", sample_rate);
+
+    //log_message(-1, "[sound.c] Checking output option");  
     switch (output_option) {
         case SOUND_OUTPUT_SYSTEM:
         default:
@@ -1005,6 +1039,10 @@ int sound_open(void)
             break;
     }
 
+    //log_message(-1, "[sound.c] Speed is still %d", speed);
+    //log_message(-1, "[sound.c] Sample rate is still %d", sample_rate);
+
+    //log_message(-1, "[sound.c] Finding pdev");  
     /* find pdev */
     for (i = 0; (pdev = sound_devices[i]); i++) {
         if (!playname || (pdev->name && !strcasecmp(playname, pdev->name))) {
@@ -1021,6 +1059,7 @@ int sound_open(void)
     /* note: in practise it is actually better to use fragments that are as
      *       small as possible, as that will allow the whole system to catch up
      *       faster and compensate errors better. */
+    //log_message(-1, "[sound.c] Calculating fragment size");  
     fragsize = speed / ((rfsh_per_sec < 1.0) ? 1 : ((int)rfsh_per_sec))
                / fragment_divisor[fragment_size];
     if (pdev) {
@@ -1036,10 +1075,19 @@ int sound_open(void)
     if (fragnr < 3) {
         fragnr = 3;
     }
-
-    if (pdev) {
-        if (pdev->init) {
+  
+    //log_message(-1, "[sound.c] Speed is still %d", speed);
+    //log_message(-1, "[sound.c] Sample rate is still %d", sample_rate);
+  
+    //log_message(-1, "[sound.c] Checking if pdev is non null");  
+    if (pdev) 
+    {
+        //log_message(-1, "[sound.c] pdev is non null.  Checking pdev-init");  
+        if (pdev->init) 
+        {
+            //log_message(-1, "[sound.c] pdev-init is non null."); 
             channels_cap = channels;
+            //log_message(-1, "[sound.c] Getting ready to call pdev->init."); 
             if (pdev->init(playparam, &speed, &fragsize, &fragnr, &channels_cap)) {
                 err = lib_msprintf("initialization failed for device `%s'.", pdev->name);
                 sound_error(err);
@@ -1057,6 +1105,9 @@ int sound_open(void)
         }
         snddata.issuspended = 0;
 
+        //log_message(-1, "[sound.c] Speed is still %d", speed);
+        //log_message(-1, "[sound.c] Sample rate is still %d", sample_rate);
+
         for (c = 0; c < snddata.sound_output_channels; c++) {
             snddata.lastsample[c] = 0;
         }
@@ -1066,7 +1117,7 @@ int sound_open(void)
         snddata.fragnr = fragnr;
         snddata.bufsize = fragsize * fragnr;
         snddata.bufptr = 0;
-        /* log_message isn't guarenteed to handle "%f" */
+        /* //log_message isn't guarenteed to handle "%f" */
         sprintf(frag_str, "%.1f", (1000.0 * fragsize / speed));
         log_message(sound_log,
                     "Opened device `%s', speed %dHz, fragment size %sms, buffer size %dms%s",
@@ -1075,12 +1126,15 @@ int sound_open(void)
                     snddata.sound_output_channels > 1 ? ", stereo" : "");
         sample_rate = speed;
 
+        //log_message(-1, "[sound.c] Getting ready to sid open and init"); 
         if (sid_open() != 0 || sid_init() != 0) {
+            //log_message(-1, "[sound.c] Sid open and init returned non 0"); 
             return 1;
         }
 
         sid_state_changed = FALSE;
 
+        //log_message(-1, "[sound.c] Fill the sound hardware buffer."); 
         /* Fill up the sound hardware buffer. */
         if (pdev->bufferspace) {
             /* Fill to bufsize - fragsize. */
@@ -1088,7 +1142,7 @@ int sound_open(void)
             if (j > 0) {
                 /* Whole fragments. */
                 j -= j % snddata.fragsize;
-
+                //log_message(-1, "[sound.c] Getting ready to fill the buffer"); 
                 fill_buffer(j, 0);
             }
         }
@@ -1103,6 +1157,7 @@ int sound_open(void)
     sdev_open = TRUE;
     sound_state_changed = FALSE;
 
+    //log_message(-1, "[sound.c] Playback sound device is now open"); 
     for (i = 0; (rdev = sound_devices[i]); i++) {
         if (recname && rdev->name && !strcasecmp(recname, rdev->name)) {
             break;
@@ -1113,6 +1168,7 @@ int sound_open(void)
         ui_error("Recording device %s doesn't exist!", recname);
     }
 
+    //log_message(-1, "[sound.c] Checking if recording and playback devices are the same."); 
     if (rdev) {
         if (rdev == pdev) {
             ui_error("Recording device must be different from playback device");
@@ -1141,10 +1197,13 @@ int sound_open(void)
                 resources_set_string("SoundRecordDeviceName", "");
             } else {
                 snddata.recdev = rdev;
-                log_message(sound_log, "Opened recording device device `%s'", rdev->name);
+                //log_message(sound_log, "Opened recording device device `%s'", rdev->name);
             }
         }
     }
+    
+    //log_message(-1, "[sound.c] Done with sound_open"); 
+    
     return 0;
 }
 
@@ -1152,7 +1211,7 @@ int sound_open(void)
 void sound_close(void)
 {
     if (snddata.playdev) {
-        log_message(sound_log, "Closing device `%s'", snddata.playdev->name);
+        //log_message(sound_log, "Closing device `%s'", snddata.playdev->name);
         if (snddata.playdev->close) {
             snddata.playdev->close();
         }
@@ -1160,7 +1219,7 @@ void sound_close(void)
     }
 
     if (snddata.recdev) {
-        log_message(sound_log, "Closing recording device `%s'", snddata.recdev->name);
+        //log_message(sound_log, "Closing recording device `%s'", snddata.recdev->name);
         if (snddata.recdev->close) {
             snddata.recdev->close();
         }
@@ -1187,6 +1246,8 @@ void sound_close(void)
 /* run sid */
 static int sound_run_sound(void)
 {
+    //log_message(-1, "[sound.c] Entering sound run sound");
+
     int nr = 0, i;
     int delta_t = 0;
     int16_t *bufferptr;
@@ -1197,23 +1258,30 @@ static int sound_run_sound(void)
         return 1;
     }
 
+    //log_message(-1, "[sound.c] Checking if playdev is non null");
     if (!snddata.playdev) {
+        //log_message(-1, "[sound.c] Getting ready to open sound.");
         i = sound_open();
+        //log_message(-1, "[sound.c] Checking if sound open is non 0");
         if (i) {
             return i;
         }
     }
 
     /* Handling of cycle based sound engines. */
+    //log_message(-1, "[sound.c] Checking cycle base.");
     if (cycle_based) {
         delta_t = maincpu_clk - snddata.lastclk;
         bufferptr = snddata.buffer + snddata.bufptr * snddata.sound_output_channels;
+        //log_message(-1, "[sound.c] Getting ready to machine calculate samples");
         nr = sound_machine_calculate_samples(snddata.psid,
                                              bufferptr,
                                              SOUND_BUFSIZE - snddata.bufptr,
                                              snddata.sound_output_channels,
                                              snddata.sound_chip_channels,
                                              &delta_t);
+                                             
+        //log_message(-1, "[sound.c] Checking delta");
         if (delta_t) {
             if (overflow_warning_count < 25) {
                 log_warning(sound_log, "%s", "Sound buffer overflow (cycle based)");
@@ -1226,6 +1294,7 @@ static int sound_run_sound(void)
             }
         }
     } else {
+        //log_message(-1, "[sound.c] Cycle based == 0.  Handling sample based sound engine");
         /* Handling of sample based sound engines. */
         nr = (int)((SOUNDCLK_CONSTANT(maincpu_clk) - snddata.fclk)
                    / snddata.clkstep);
@@ -1239,6 +1308,7 @@ static int sound_run_sound(void)
             return 0;
 #endif
         }
+        //log_message(-1, "[sound.c] Getting sound buffer pointer and calculating machine samples");
         bufferptr = snddata.buffer + snddata.bufptr * snddata.sound_output_channels;
         sound_machine_calculate_samples(snddata.psid,
                                         bufferptr,
@@ -1249,6 +1319,7 @@ static int sound_run_sound(void)
         snddata.fclk += nr * snddata.clkstep;
     }
 
+    //log_message(-1, "[sound.c] Checking if amp < 4096");
     if (amp < 4096) {
         if (amp) {
             for (i = 0; i < (nr * snddata.sound_output_channels); i++) {
@@ -1259,8 +1330,12 @@ static int sound_run_sound(void)
         }
     }
 
+
+    //log_message(-1, "[sound.c] Setting bufptr");
     snddata.bufptr += nr;
     snddata.lastclk = maincpu_clk;
+
+    //log_message(-1, "[sound.c] Done with sound_run_sound");
 
     return 0;
 }
@@ -1306,28 +1381,38 @@ double sound_flush()
     static time_t prev;
     time_t now;
 
+    //log_message(-1, "[sound.c] Checking if playback is enabled");
     if (!playback_enabled) {
         if (sdev_open) {
+            //log_message(-1, "[sound.c] Getting ready to close sound");
             sound_close();
         }
         return 0;
     }
 
+    //log_message(-1, "[sound.c] Checking if sound state changed");
     if (sound_state_changed) {
         if (sdev_open) {
+            //log_message(-1, "[sound.c] Getting ready to close sound");
             sound_close();
         }
         sound_state_changed = FALSE;
     }
 
+    //log_message(-1, "[sound.c] Checking suspend time.");
     if (suspend_time > 0) {
+        //log_message(-1, "[sound.c] Getting ready to enable sound");
         enablesound();
     }
+    
+    //log_message(-1, "[sound.c] Getting ready sound run sound.");
     if (sound_run_sound()) {
         return 0;
     }
 
+    //log_message(-1, "[sound.c] Checking if sid state changed");
     if (sid_state_changed) {
+        //log_message(-1, "[sound.c] Getting ready to init sid");
         if (sid_init() != 0) {
             return 0;
         }
@@ -1338,9 +1423,11 @@ double sound_flush()
         snddata.bufptr = 0;
         return 0;
     }
+    //log_message(-1, "[sound.c] Getting ready to resume sound");
     sound_resume();
 
     if (snddata.playdev->flush) {
+        //log_message(-1, "[sound.c] Getting ready to dump sound machine state");
         state = sound_machine_dump_state(snddata.psid[0]);
         i = snddata.playdev->flush(state);
         lib_free(state);
@@ -1351,13 +1438,16 @@ double sound_flush()
     }
 
     /* Calculate the number of samples to flush - whole fragments. */
+    //log_message(-1, "[sound.c] Calculating number of sound samples to flush");
     nr = snddata.bufptr - snddata.bufptr % snddata.fragsize;
     if (!nr) {
         return 0;
     }
 
     /* adjust speed */
+    //log_message(-1, "[sound.c] Adjusting speed.");
     if (snddata.playdev->bufferspace) {
+        //log_message(-1, "[sound.c] Getting ready to get buffer space");
         space = snddata.playdev->bufferspace();
         if (space < 0 || space > snddata.bufsize) {
             log_warning(sound_log, "fragment problems %d %d", space, snddata.bufsize);
@@ -1374,6 +1464,7 @@ double sound_flush()
             if (suspend_time > 0) {
                 now = time(0);
                 if (now == prev) {
+                    //log_message(-1, "[sound.c] Getting ready to suspend sound");
                     suspendsound("buffer overruns");
                     return 0;
                 }
@@ -1386,6 +1477,7 @@ double sound_flush()
 
             /* Fill up sound hardware buffer. */
             if (j > 0) {
+                //log_message(-1, "[sound.c] Getting ready to fill buffer.");
                 fill_buffer(j, 0);
             }
             snddata.prevfill = j;
@@ -1400,6 +1492,7 @@ double sound_flush()
                     drained_warning_count++;
                 }
             }
+            //log_message(-1, "[sound.c] Getting ready to vsynch synch reset.");
             vsync_sync_reset();
         }
         if (cycle_based || speed_adjustment_setting != SOUND_ADJUST_ADJUSTING) {
@@ -1432,6 +1525,7 @@ double sound_flush()
         if (SOUNDCLK_CONSTANT(cycles_per_rfsh) / snddata.clkstep
             >= snddata.bufsize) {
             if (suspend_time > 0) {
+                //log_message(-1, "[sound.c] Getting ready to suspend sound for running too slow.");
                 suspendsound("running too slow");
             } else {
                 sound_error("running too slow.");
@@ -1446,13 +1540,16 @@ double sound_flush()
         }
     }
 
+    //log_message(-1, "[sound.c] Check if need to flush all buffers.");
     if (nr) {
+        //log_message(-1, "[sound.c] Getting ready to write playdev");
         /* Flush buffer, all channels are already mixed into it. */
         if (snddata.playdev->write(snddata.buffer, nr * snddata.sound_output_channels)) {
             sound_error("write to sound device failed.");
             return 0;
         }
-
+     
+        //log_message(-1, "[sound.c] Getting ready to write recdev");
         if (snddata.recdev) {
             if (snddata.recdev->write(snddata.buffer, nr * snddata.sound_output_channels)) {
                 sound_error("write to sound device failed.");
@@ -1468,6 +1565,7 @@ double sound_flush()
 
     snddata.bufptr -= nr;
 
+    //log_message(-1, "[sound.c] Making adjustments");
     for (c = 0; c < snddata.sound_output_channels; c++) {
         snddata.lastsample[c] = snddata.buffer[(nr - 1) * snddata.sound_output_channels + c];
         for (i = 0; i < snddata.bufptr; i++) {
@@ -1489,6 +1587,8 @@ double sound_flush()
         return (double)remspace / sample_rate;
     }
 
+    //log_message(-1, "[sound.c] Done flushing sound.");
+    
     return 0;
 }
 
@@ -1580,7 +1680,7 @@ void sound_init(unsigned int clock_rate, unsigned int ticks_per_frame)
         devlist = tmplist;
     }
 
-    log_message(sound_log, "Available sound devices:%s", devlist);
+    //log_message(sound_log, "Available sound devices:%s", devlist);
 
     lib_free(devlist);
 }

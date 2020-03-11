@@ -102,7 +102,6 @@ static void __yy_memcpy (char *to, char *from, int count);
 #endif
 
 /* Defined in the lexer */
-extern int new_cmd, opt_asm;
 extern void free_buffer(void);
 extern void make_buffer(char *str);
 extern int yylex(void);

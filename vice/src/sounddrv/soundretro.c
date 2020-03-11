@@ -14,6 +14,8 @@ extern int RETROSOUNDSAMPLERATE;
 
 static int retro_sound_init(const char *param, int *speed, int *fragsize, int *fragnr, int *channels)
 {
+    log_message(-1, "[soundretro.c] Initializing retro sound device");
+
     *speed = RETROSOUNDSAMPLERATE;
     //*fragsize = 32;
     *fragnr = 0;

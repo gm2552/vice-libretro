@@ -1155,6 +1155,7 @@ void machine_specific_reset(void)
 
 void machine_specific_powerup(void)
 {
+    log_message(LOG_ERR, "[C64ce] Getting ready to reset registers\n");
     vicii_reset_registers();
     reset_poweron = 1;
 }

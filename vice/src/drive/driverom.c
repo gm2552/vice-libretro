@@ -64,10 +64,9 @@ static log_t driverom_log;
 /* If nonzero, we are far enough in init that we can load ROMs.  */
 static int drive_rom_load_ok = 0;
 
-
-int driverom_load(const char *resource_name, uint8_t *drive_rom, unsigned
-                  int *loaded, int min, int max, const char *name,
-                  unsigned int type, unsigned int *size) 
+int driverom_load_w_copythrough(const char *resource_name, uint8_t *drive_rom, unsigned
+                         int *loaded, int min, int max, const char *name,
+                         unsigned int type, unsigned int *size, int drive_rom_copythrough)
 {
     const char *rom_name = NULL;
     int filesize;
@@ -78,10 +77,15 @@ int driverom_load(const char *resource_name, uint8_t *drive_rom, unsigned
         return 0;
     }
 
-    resources_get_string(resource_name, &rom_name);
+    if (drive_rom_copythrough)
+    	filesize = max;
+    else
+    {
+      resources_get_string(resource_name, &rom_name);
 
-    filesize = sysfile_load(rom_name, drive_rom, min, max);
-
+      filesize = sysfile_load(rom_name, drive_rom, min, max);
+    }
+    
     if (filesize < 0) {
         log_error(driverom_log, "%s ROM image not found. "
                   "Hardware-level %s emulation is not available.", name, name);
@@ -107,6 +111,14 @@ int driverom_load(const char *resource_name, uint8_t *drive_rom, unsigned
         }
     }
     return 0;
+
+}
+
+int driverom_load(const char *resource_name, uint8_t *drive_rom, unsigned
+                  int *loaded, int min, int max, const char *name,
+                  unsigned int type, unsigned int *size) 
+{
+	return driverom_load_w_copythrough(resource_name, drive_rom, loaded, min, max, name, type, size, 0);
 }
 
 int driverom_load_images(void)

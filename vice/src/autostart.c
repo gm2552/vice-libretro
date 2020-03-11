@@ -1023,6 +1023,7 @@ static void reboot_for_autostart(const char *program_name, unsigned int mode,
         resources_set_int("C128ColumnKey", 1);
     }
 
+    log_message(autostart_log, "Ready to power up memory.");
     mem_powerup();
 
     autostart_ignore_reset = 1;
@@ -1032,6 +1033,7 @@ static void reboot_for_autostart(const char *program_name, unsigned int mode,
     }
 
     autostart_initial_delay_cycles = min_cycles;
+    log_message(autostart_log, "Ready to get auto start delay.");
     resources_get_int("AutostartDelayRandom", &rnd);
     if (rnd) {
         /* additional random delay of up to 10 frames */
@@ -1039,6 +1041,7 @@ static void reboot_for_autostart(const char *program_name, unsigned int mode,
     }
     DBG(("autostart_initial_delay_cycles: %d", autostart_initial_delay_cycles));
 
+    log_message(autostart_log, "Ready to trigger machine reset.");
     machine_trigger_reset(MACHINE_RESET_MODE_HARD);
 
     /* The autostartmode must be set AFTER the shutdown to make the autostart
@@ -1209,11 +1212,12 @@ int autostart_disk(const char *file_name, const char *program_name,
                     if (resources_set_int("Drive8Type", diskimg->type) < 0) {
                         log_error(LOG_ERR, "Failed to set drive type.");
                     }
+                    log_message(autostart_log, "Ready to trigger cpu reset %s.", name);
                     drive_cpu_trigger_reset(0);
                 }
             }
 #endif
-
+            log_message(autostart_log, "Ready to reboot with name %s.", name);
             reboot_for_autostart(name, AUTOSTART_HASDISK, runmode);
             lib_free(name);
 
@@ -1353,6 +1357,7 @@ int autostart_autodetect(const char *file_name, const char *program_name,
     }
 
     log_message(autostart_log, "Autodetecting image type of `%s'.", file_name);
+    log_message(autostart_log, "Getting ready to detect image type.");
 
     if (autostart_disk(file_name, program_name, program_number, runmode) == 0) {
         log_message(autostart_log, "`%s' recognized as disk image.", file_name);

@@ -344,18 +344,22 @@ sound_t *sid_sound_machine_open(int chipno)
 
 #ifdef HAVE_RESID
     if (sidengine == SID_ENGINE_RESID) {
+        log_message(-1, "[sid.c] Setting sid_engine to resid_hooks");
         sid_engine = resid_hooks;
     }
 #ifdef __LIBRETRO__
     if (sidengine == SID_ENGINE_RESID33) {
+        log_message(-1, "[sid.c] Setting sid_engine to resid33_hooks");
         sid_engine = resid33_hooks;
     }
     if (sidengine == SID_ENGINE_RESIDFP) {
+        log_message(-1, "[sid.c] Setting sid_engine to residfp_hooks");
         sid_engine = residfp_hooks;
     }
 #endif
 #endif
 
+    log_message(-1, "[sid.c] Getting ready to open sid engine.");
     return sid_engine.open(siddata[chipno]);
 }
 
@@ -422,6 +426,8 @@ int sid_sound_machine_init_vbr(sound_t *psid, int speed, int cycles_per_sec, int
 
 int sid_sound_machine_init(sound_t *psid, int speed, int cycles_per_sec)
 {
+    log_message(-1, "[sid.c] Initialing sound machine with speed %d and %d cycles per sec", speed, cycles_per_sec);
+
     return sid_engine.init(psid, speed, cycles_per_sec, 1000);
 }
 

@@ -114,7 +114,7 @@ unsigned int machine_jam(const char *format, ...)
     str = lib_mvsprintf(format, ap);
     va_end(ap);
 
-    log_message(LOG_DEFAULT, "*** %s", str);
+    //log_message(LOG_DEFAULT, "*** %s", str);
 
     if (jam_action == MACHINE_JAM_ACTION_DIALOG) {
         if (monitor_is_remote()) {
@@ -153,29 +153,39 @@ unsigned int machine_jam(const char *format, ...)
 
 static void machine_trigger_reset_internal(const unsigned int mode)
 {
+    //log_message(LOG_ERR, "[Machine.e] Machine reset triggered internal.\n");
+
     ignore_jam = 0;
 
     switch (mode) {
         case MACHINE_RESET_MODE_HARD:
             vsync_frame_counter = 0;
             mem_initialized = 0; /* force memory initialization */
+            //log_message(LOG_ERR, "[Machine.e] Getting ready to do machine specific power up.\n");
             machine_specific_powerup();
         /* Fall through.  */
         case MACHINE_RESET_MODE_SOFT:
+            //log_message(LOG_ERR, "[Machine.e] Getting ready to reset main cpu.\n");
             maincpu_trigger_reset();
             break;
     }
+    
+    //log_message(LOG_ERR, "[Machine.e] Done with internal machine reset.\n");
 }
 
 void machine_trigger_reset(const unsigned int mode)
 {
+    //log_message(LOG_ERR, "[Machine.e] Machine reset triggered.\n");
     if (event_playback_active()) {
         return;
     }
 
+    //log_message(LOG_ERR, "[Machine.e] Machine reset: checking if network is connected.\n");
     if (network_connected()) {
         network_event_record(EVENT_RESETCPU, (void *)&mode, sizeof(mode));
-    } else {
+    } else 
+    {
+        
         event_record(EVENT_RESETCPU, (void *)&mode, sizeof(mode));
         machine_trigger_reset_internal(mode);
     }
@@ -188,7 +198,7 @@ void machine_reset_event_playback(CLOCK offset, void *data)
 
 void machine_reset(void)
 {
-    log_message(LOG_DEFAULT, "Main CPU: RESET.");
+    //log_message(LOG_DEFAULT, "Main CPU: RESET.");
 
     ignore_jam = 0;
 

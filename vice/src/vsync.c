@@ -295,7 +295,7 @@ void vsync_init(void (*hook)(void))
     vsyncarch_init();
 
     vsyncarch_freq = vsyncarch_frequency();  /* number of units per second */
-    /* log_message(LOG_DEFAULT, "VSYNC Init freq: %u", (unsigned int)vsyncarch_freq); */
+    /* //log_message(LOG_DEFAULT, "VSYNC Init freq: %u", (unsigned int)vsyncarch_freq); */
 }
 
 /* FIXME: This function is not needed here anymore, however it is
@@ -327,6 +327,8 @@ void vsync_sync_reset(void)
    audio buffer and keeps control of the emulation speed. */
 int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
 {
+    //log_message(-1, "[vsynch.c] Performing vsynch.");
+
     static unsigned long next_frame_start = 0;
     unsigned long network_hook_time = 0;
 
@@ -357,6 +359,7 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
 
 #ifdef HAVE_NETWORK
     /* check if someone wants to connect remotely to the monitor */
+    //log_message(-1, "[vsynch.c] Getting ready to check remote monitor.");
     monitor_check_remote();
 #endif
 
@@ -366,6 +369,7 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
      * process everything wich should be done before the synchronisation
      * e.g. OS/2: exit the programm if trigger_shutdown set
      */
+    //log_message(-1, "[vsynch.c] Getting ready to check pre synch.");
     vsyncarch_presync();
 
     /* Run vsync jobs. */
@@ -373,6 +377,7 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
         network_hook_time = vsyncarch_gettime();
     }
 
+    //log_message(-1, "[vsynch.c] Getting ready to vsynch hook");
     vsync_hook();
 
     if (network_connected()) {
@@ -414,10 +419,13 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
         skipped_frames++;
     }
 
+
+    //log_message(-1, "[vsynch.c] Getting ready to flush sound");
     /* Flush sound buffer, get delay in seconds. */
     sound_delay = sound_flush();
 
     /* Get current time, directly after getting the sound delay. */
+    ////log_message(-1, "[vsynch.c] Getting ready to get current time");
     now = vsyncarch_gettime();
 
     /* Start afresh after pause in frame output. */
@@ -435,6 +443,7 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
     }
 
     /* Start afresh after "out of sync" cases. */
+    //log_message(-1, "[vsynch.c] Checking synch reset");
     if (sync_reset) {
         sync_reset = 0;
 
@@ -448,6 +457,7 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
 
 
     /* This is the time between the start of the next frame and now. */
+    //log_message(-1, "[vsynch.c] Getting delay");
     delay = (signed long)(now - next_frame_start);
     /*
      * We sleep until the start of the next frame, if:
@@ -506,17 +516,21 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
      * Check whether the hardware can keep up.
      * Allow up to 0,25 second error before forcing a correction.
      */
+     //log_message(-1, "[vsynch.c] Checking hardware keepup");
     if ((signed long)(now - next_frame_start) >= vsyncarch_freq / 8) {
+        //log_message(-1, "[vsynch.c] Getting ready to vsynch reset.");
         vsync_sync_reset();
         next_frame_start = now;
     }
 
     /* Adjust frame output frequency to match sound speed.
        This only kicks in for cycle based sound and SOUND_ADJUST_EXACT. */
+    //log_message(-1, "[vsynch.c] Adjusting frames.");
     if (frames_adjust < INT_MAX) {
         frames_adjust++;
     }
 
+    //log_message(-1, "[vsynch.c] Adjusting audio-video synch.");
     /* Adjust audio-video sync */
     if (!network_connected()
         && (signed long)(now - adjust_start) >= vsyncarch_freq / 5) {
@@ -554,11 +568,14 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
     next_frame_start += frame_ticks;
 #endif
 
+    //log_message(-1, "[vsynch.c] Getting ready to post synch.");
     vsyncarch_postsync();
 
 #ifdef VSYNC_DEBUG
     log_debug("vsync: start:%lu  delay:%ld  sound-delay:%lf  end:%lu  next-frame:%lu  frame-ticks:%lu", 
                 now, delay, sound_delay * 1000000, vsyncarch_gettime(), next_frame_start, frame_ticks);
 #endif
+    //log_message(-1, "[vsynch.c] Done performing vsynch.");
+
     return skip_next_frame;
 }

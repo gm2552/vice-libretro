@@ -1288,12 +1288,15 @@ uint8_t vicii_palette_read(uint16_t addr)
 /* Store a value in a VIC-II register.  */
 void vicii_store(uint16_t addr, uint8_t value)
 {
+    
+
     if (vicii.extended_enable) {
         addr &= 0x7f;
     } else {
         addr &= 0x3f;
     }
 
+    //log_message(-1, "[vicii-mem.c] Getting ready to handle pending alarms.");
     vicii_handle_pending_alarms_external_write();
 
     /* This is necessary as we must be sure that the previous line has been
@@ -1301,6 +1304,7 @@ void vicii_store(uint16_t addr, uint8_t value)
        the raster.  Otherwise we might mix the changes for this line with the
        changes for the previous one.  */
     if (maincpu_clk >= vicii.draw_clk) {
+        //log_message(-1, "[vicii-mem.c] Getting ready handle raster draw alarm.");
         vicii_raster_draw_alarm_handler(maincpu_clk - vicii.draw_clk, NULL);
     }
 
@@ -1308,6 +1312,7 @@ void vicii_store(uint16_t addr, uint8_t value)
                           addr, VICII_RASTER_CYCLE(maincpu_clk),
                           VICII_RASTER_Y(maincpu_clk)));
 
+    //log_message(-1, "[vicii-mem.c] Checking address to store.");
     switch (addr) {
         case 0x0:                 /* $D000: Sprite #0 X position LSB */
         case 0x2:                 /* $D002: Sprite #1 X position LSB */
@@ -1317,6 +1322,7 @@ void vicii_store(uint16_t addr, uint8_t value)
         case 0xa:                 /* $D00a: Sprite #5 X position LSB */
         case 0xc:                 /* $D00c: Sprite #6 X position LSB */
         case 0xe:                 /* $D00e: Sprite #7 X position LSB */
+            //log_message(-1, "[vicii-mem.c] Getting ready to store spring x position.");
             store_sprite_x_position_lsb(addr, value);
             break;
 
@@ -1658,7 +1664,7 @@ inline static uint8_t d01f_read(void)
                           vicii.regs[0x1f]));
 
 #if defined (VICII_DEBUG_SB_COLLISIONS)
-    log_message(vicii.log,
+    //log_message(vicii.log,
                 "vicii.sprite_background_collisions reset by $D01F "
                 "read at line 0x%X.",
                 VICII_RASTER_Y(clk));
