@@ -211,6 +211,7 @@ typedef void monitor_toggle_func_t(int value);
 
 /* Global variables */
 
+extern int new_cmd, opt_asm;
 extern const char *_mon_space_strings[];
 
 struct console_s;
