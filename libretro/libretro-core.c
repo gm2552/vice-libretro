@@ -455,6 +455,7 @@ static int process_cmdline(const char* argv)
         joystick_control = check_joystick_control(argv);
         if (joystick_control)
         {
+            log_message(-1,"[libretro-core.c] Setting cur_port from joystick_control with value %d", joystick_control);
             cur_port = joystick_control;
             cur_port_locked = 1;
         }
@@ -566,11 +567,13 @@ static int process_cmdline(const char* argv)
             // Was strstr, but I don't see the point
             else if (strcmp(arg, "-j1") == 0)
             {
+                log_message(-1,"[libretro-core.c] Setting cur_port from command line with value 1");
                 cur_port = 1;
                 cur_port_locked = 1;
             }
             else if (strcmp(arg, "-j2") == 0)
             {
+                log_message(-1,"[libretro-core.c] Setting cur_port from command line with value 2");
                 cur_port = 2;
                 cur_port_locked = 1;
             }
@@ -2955,12 +2958,12 @@ static void update_variables(void)
       else if (strcmp(var.value, "Port 1") == 0 && !cur_port_locked) cur_port=1;
    }
 
-   var.key = "vice_joyport_type";
-   var.value = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      opt_joyport_type = atoi(var.value);
-   }
+   //var.key = "vice_joyport_type";
+   //var.value = NULL;
+   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   //{
+      opt_joyport_type = 1;//atoi(var.value);
+   //}
 
    var.key = "vice_analogmouse_deadzone";
    var.value = NULL;
@@ -4260,6 +4263,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
 #if defined(__VIC20__)
    /* Moved this here so it also applies without loading content */
+   log_message(-1,"[libretro-core.c] Setting cur_port from load_game with value 1");
    cur_port = 1;
    cur_port_locked = 1;
 #endif

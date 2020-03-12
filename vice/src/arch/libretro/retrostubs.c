@@ -33,7 +33,7 @@ bool num_locked = false;
 unsigned int statusbar;
 unsigned int warpmode;
 unsigned int datasette_hotkeys;
-unsigned int cur_port=2;
+unsigned int cur_port=1;
 static int cur_port_prev=-1;
 extern int cur_port_locked;
 extern int mapper_keys[36];
@@ -89,7 +89,11 @@ void emu_function(int function)
         case EMU_JOYPORT:
             cur_port_locked = 1;
             cur_port++;
-            if (cur_port>2) cur_port = 1;
+            if (cur_port>2) 
+            {
+               cur_port = 1;
+               log_message(-1,"[retrostubs.c] Setting cur_port EMU_JOYPORT with value 1");
+            }
             break;
         case EMU_RESET:
             emu_reset();
@@ -492,6 +496,7 @@ int Core_PollEvent(int disable_physical_cursor_keys)
                     }
                     
                     log_message(-1,"[retrostubs.c] Joystick button just pressed from joy pad %d from button index %d.\n", j, i);
+                    log_message(-1,"[retrostubs.c] Cur joystick port: %d\n", cur_port);
 
                     if (mapper_keys[i] == mapper_keys[24]) /* Virtual keyboard */
                         emu_function(EMU_VKBD);
