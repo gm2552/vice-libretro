@@ -3726,6 +3726,8 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 
 void retro_init(void)
 {
+   log_message(-1, "[libretro-core.c] Retro Init: Initializing core.");
+
    struct retro_log_callback log;
 
 	// Init disk control context
@@ -3735,7 +3737,7 @@ void retro_init(void)
       log_cb = log.log;
    else
       log_cb = fallback_log;
-
+      
    const char *system_dir = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
@@ -3834,10 +3836,17 @@ void retro_init(void)
    environ_cb(RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS, &quirks);
 
    microSecCounter = 0;
+   
+   if (log_cb)
+     log_cb(RETRO_LOG_INFO, "[libretro-core.c] Retro Init: Initializing complete.");
+     
+   log_message(-1, "[libretro-core.c] Retro Init: Initializing complete.");
 }
 
 void retro_deinit(void)
 {
+   log_message(-1, "[libretro-core.c] Retro deinit: Deinitializing core.");
+
    /* Clean the disk control context */
    if (dc)
       dc_free(dc);
@@ -3845,6 +3854,8 @@ void retro_deinit(void)
    {
 	   free(core_options_legacy_strings);
    }
+   
+   log_message(-1, "[libretro-core.c] Retro deinit: Completed deinitializing core.");
 }
 
 unsigned retro_api_version(void)
@@ -3854,12 +3865,17 @@ unsigned retro_api_version(void)
 
 void retro_set_controller_port_device( unsigned port, unsigned device )
 {
+   log_message(-1, "[libretro-core.c] Retro set controller port device: Setting up port device.");
    if (port < 5)
       vice_devices[port] = device;
+      
+   log_message(-1, "[libretro-core.c] Retro set controller port device: Completed setting up port device.");
 }
 
 void retro_get_system_info(struct retro_system_info *info)
 {
+   log_message(-1, "[libretro-core.c] Retro get system info: Initializing gathering of system info.");
+
 #ifndef GIT_VERSION
 #define GIT_VERSION ""
 #endif
@@ -3873,10 +3889,14 @@ void retro_get_system_info(struct retro_system_info *info)
 #endif
    info->need_fullpath    = true;
    info->block_extract    = false;
+   
+   log_message(-1, "[libretro-core.c] Retro get system info: Completed gathering of system info.");
 }
 
 double retro_get_aspect_ratio(unsigned int width, unsigned int height)
 {
+   log_message(-1, "[libretro-core.c] Retro get aspect ratio: Initializing gathering of aspect ratio.");
+
    static double ar;
    #if defined(__X64__) || defined(__X64SC__) || defined(__X128__)
       if (retro_region == RETRO_REGION_NTSC)
@@ -3894,6 +3914,9 @@ double retro_get_aspect_ratio(unsigned int width, unsigned int height)
       else
          ar = ((float)width / (float)height) * (float)1.03743478;
    #endif
+   
+   log_message(-1, "[libretro-core.c] Retro get aspect ratio: Completed gathering of aspect ratio.");
+   
    return ar;
 }
 
@@ -4040,6 +4063,8 @@ void update_geometry(int mode)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
+   log_message(-1, "[libretro-core.c] Retro get system av info: Initializing gathering av info.");
+
    /* need to do this here because core option values are not available in retro_init */
    if (pix_bytes == 4)
    {
@@ -4077,47 +4102,65 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
          info->timing.fps = C64_NTSC_RFSH_PER_SEC;
          break;
    }
+   
+   log_message(-1, "[libretro-core.c] Retro get system av info: Completed gathering av info.");
 }
 
 void retro_set_video_refresh(retro_video_refresh_t cb)
 {
+   log_message(-1, "[libretro-core.c] Retro set video refresh.");
+
    video_cb = cb;
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
 {
+   log_message(-1, "[libretro-core.c] Retro set audio sample.");
+
    audio_cb = cb;
 }
 
 void retro_audio_cb(short l, short r)
 {
+   log_message(-1, "[libretro-core.c] Retro audio cb.");
+
    audio_cb(l, r);
 }
 
 void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
 {
+   log_message(-1, "[libretro-core.c] Retro set audo sample batch.");
+   
    audio_batch_cb = cb;
 }
 
 void retro_audio_batch_cb(const int16_t *data, size_t frames)
 {
+   log_message(-1, "[libretro-core.c] Retro audo batch cb.");
+
    audio_batch_cb(data, frames);
 }
 
 void retro_audio_render(signed short int *sound_buffer, int sndbufsize)
 {
+   log_message(-1, "[libretro-core.c] Retro audio render: Intializing rendering of audio buffer");
+
    int x;
 #if 1
    for (x=0; x<sndbufsize; x++) audio_cb(sound_buffer[x], sound_buffer[x]);
 #else
    //FIXME audio_batch_cb(sound_buffer, sndbufsize);
 #endif
+   log_message(-1, "[libretro-core.c] Retro audio render: Completed rendering of audio buffer");
+
 }
 
 
 
 void retro_run(void)
 {
+   log_message(-1, "[libretro-core.c] Retro Run: Start of frame loop.");
+
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       update_variables();
@@ -4250,10 +4293,14 @@ void retro_run(void)
 
    video_cb(Retro_Screen+(retroXS_offset*pix_bytes/2)+(retroYS_offset*(retrow<<(pix_bytes/4))), zoomed_width, zoomed_height, retrow<<(pix_bytes/2));
    microSecCounter += (1000000/(retro_get_region() == RETRO_REGION_NTSC ? C64_NTSC_RFSH_PER_SEC : C64_PAL_RFSH_PER_SEC));
+   
+   log_message(-1, "[libretro-core.c] Retro Run: Completed frame loop.");
 }
 
 bool retro_load_game(const struct retro_game_info *info)
 {
+   log_message(-1, "[libretro-core.c] Retro load game: Initializing load of game.");
+
    if (info)
    {
       process_cmdline(info->path);
@@ -4276,24 +4323,40 @@ bool retro_load_game(const struct retro_game_info *info)
       runstate = RUNSTATE_LOADED_CONTENT;
    }
 
+   log_message(-1, "[libretro-core.c] Retro load game: Completed loading of game.");
+
    return true;
 }
 
 void retro_unload_game(void)
 {
+   log_message(-1, "[libretro-core.c] Retro unload game: Starting unload of game.");
+
+   log_message(-1, "[libretro-core.c] Retro unload game: Detach file system disk.");
    file_system_detach_disk(8);
+   log_message(-1, "[libretro-core.c] Retro unload game: Detach tape image.");
    tape_image_detach(1);
 #ifndef __PET__
+   log_message(-1, "[libretro-core.c] Retro unload game: Detach cartridge image.");
    cartridge_detach_image(-1);
 #endif
+
+   log_message(-1, "[libretro-core.c] Retro unload game: Reset dc.");
    dc_reset(dc);
+   
+   log_message(-1, "[libretro-core.c] Retro unload game: Free autostart string.");
    free(autostartString);
    autostartString = NULL;
+   
+   log_message(-1, "[libretro-core.c] Retro unload game: Starting unload of game.");
 }
 
 unsigned retro_get_region(void)
 {
+   log_message(-1, "[libretro-core.c] Retro get region: Starting region calculation.");
+
 #if defined(__PET__) || defined(__XSCPU64__)
+   log_message(-1, "[libretro-core.c] Retro get region: Completed region calculation.");
    return RETRO_REGION_PAL;
 #else
    switch (RETROC64MODL)
@@ -4324,9 +4387,11 @@ unsigned retro_get_region(void)
       case C64MODEL_C64SX_NTSC:
       case C64MODEL_PET64_NTSC:
 #endif
+         log_message(-1, "[libretro-core.c] Retro get region: Completed region calculation.");
          return RETRO_REGION_NTSC;
          break;
       default:
+         log_message(-1, "[libretro-core.c] Retro get region: Completed region calculation.");
          return RETRO_REGION_PAL;
          break;
    }
@@ -4372,6 +4437,8 @@ static void load_trap(uint16_t addr, void *success)
 
 size_t retro_serialize_size(void)
 {
+   log_message(-1, "[libretro-core.c] Retro serialize size: Intializing serialization of size");
+
    long snapshot_size = 0;
    if (retro_ui_finalized)
    {
@@ -4396,11 +4463,16 @@ size_t retro_serialize_size(void)
          snapshot_stream = NULL;
       }
    }
+   
+   log_message(-1, "[libretro-core.c] Retro serialize size: Completed serialization of size");
+   
    return snapshot_size;
 }
 
 bool retro_serialize(void *data_, size_t size)
 {
+   log_message(-1, "[libretro-core.c] Retro serialize: Intializing serialization.");
+
    if (retro_ui_finalized)
    {
       snapshot_stream = snapshot_memory_write_fopen(data_, size);
@@ -4416,15 +4488,21 @@ bool retro_serialize(void *data_, size_t size)
       }
       if (success)
       {
+         log_message(-1, "[libretro-core.c] Retro serialize: Completed serialization.");
          return true;
       }
       log_cb(RETRO_LOG_INFO, "Failed to serialize snapshot\n");
    }
+   
+   
+   log_message(-1, "[libretro-core.c] Retro serialize: Completed serialization.");
    return false;
 }
 
 bool retro_unserialize(const void *data_, size_t size)
 {
+   log_message(-1, "[libretro-core.c] Retro unserialize: Intializing deserialization.");
+
    if (retro_ui_finalized)
    {
       resources_set_int("WarpMode", 0);
@@ -4441,15 +4519,20 @@ bool retro_unserialize(const void *data_, size_t size)
       }
       if (success)
       {
+         log_message(-1, "[libretro-core.c] Retro unserialize: Completed deserialization.");
          return true;
       }
       log_cb(RETRO_LOG_INFO, "Failed to unserialize snapshot\n");
    }
+   
+   log_message(-1, "[libretro-core.c] Retro unserialize: Completed deserialization.");
    return false;
 }
 
 void *retro_get_memory_data(unsigned id)
 {
+   log_message(-1, "[libretro-core.c] Retro get memory data.");
+
    if (id == RETRO_MEMORY_SYSTEM_RAM)
       return mem_ram;
    return NULL;
@@ -4457,6 +4540,8 @@ void *retro_get_memory_data(unsigned id)
 
 size_t retro_get_memory_size(unsigned id)
 {
+   log_message(-1, "[libretro-core.c] Retro get memory size.");
+
    if (id == RETRO_MEMORY_SYSTEM_RAM)
       return g_mem_ram_size;
    return 0;

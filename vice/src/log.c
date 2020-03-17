@@ -365,16 +365,18 @@ static char log_buf[ 4096 ]; /*create this here in case of tiny stack*/
 
 static int log_helper(unsigned int level, const char *format, va_list ap)
 {
-    int rc;
+    int rc = 0;
 
 	rc = vsprintf( log_buf, format, ap );
 
-	if ( rc >= 0 )
-    {
-		log_cb(level, "%s\n", log_buf);
-		++rc;
-	}
+	//if ( rc >= 0 )
+    //{
+	//	log_cb(level, "%s\n", log_buf);
+	//	++rc;
+	//}
 
+    fprintf(stdout, "%s\n", log_buf);
+    fflush(stdout);
     return rc;
 }
 
