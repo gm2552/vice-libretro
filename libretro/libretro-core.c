@@ -1,3 +1,4 @@
+#include <sys/time.h>
 #include "libretro.h"
 #include "libretro-core.h"
 #include "file/file_path.h"
@@ -211,6 +212,13 @@ static int runstate = RUNSTATE_FIRST_START; /* used to detect whether we are jus
 bool display_disk_name = true;
 /* See which looks best in most cases and tweak (or make configurable) */
 int disk_label_mode = DISK_LABEL_MODE_ASCII_OR_CAMELCASE;
+
+uint64_t getTimeStamp() 
+{
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
+}
 
 static char* x_strdup(const char* str)
 {
@@ -4205,6 +4213,7 @@ void retro_run(void)
    if (runstate == RUNSTATE_FIRST_START)
    {
       /* this is only done once after just loading the core from scratch and starting it */
+      log_message(-1, "[libretro-core.c] Retro Run: First time we return from retro_run()\n");
 #ifdef RETRO_DEBUG
       log_cb(RETRO_LOG_INFO, "First time we return from retro_run()!\n");
 #endif
@@ -4217,6 +4226,8 @@ void retro_run(void)
    } 
    else if (runstate == RUNSTATE_LOADED_CONTENT)
    {
+   
+      log_message(-1, "[libretro-core.c] Retro Run: App in running state.  Preparing to reload and restart.\n");
       /* Load content was called while core was already running, just do a reset with autostart */
       reload_restart();
       /* After retro_load_game, get_system_av_info is always called by the frontend */
@@ -4227,31 +4238,41 @@ void retro_run(void)
    } 
 
 
-
+   log_message(-1, "[libretro-core.c] Retro Run: Preparing to poll events.\n");
    /* Input poll */
    retro_poll_event();
+
+   log_message(-1, "[libretro-core.c] Retro Run: Poll event completed.  Determining delay timing since last frame was rendered.\n");
 
    /* Measure frame-time and time between frames to render as much frames as possible when warp is enabled. Does not work
       perfectly as the time needed by the framework cannot be accounted, but should not reduce amount of actually rendered
       frames too much. */
    {
+      log_message(-1, "[libretro-core.c] Retro Run: Getting perf interface for time purpose\n");
       static struct retro_perf_callback pcb;
-      if (!pcb.get_time_usec)
+      //if (!pcb.get_time_usec)
          environ_cb(RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &pcb);
 
       static retro_time_t t_frame=1, t_end_prev=0;
 
+      log_message(-1, "[libretro-core.c] Retro Run: Perf interface obtained.  Getting time.\n");
       retro_time_t t_begin=pcb.get_time_usec();
       retro_time_t t_interframe=MIN((t_end_prev ? t_begin-t_end_prev : 0), 20000-t_frame);
 
+      log_message(-1, "[libretro-core.c] Retro Run: Entering frame count loop.\n");
       for (int frame_count=0;frame_count<(retro_warp_mode_enabled() ? (t_interframe+t_frame)/t_frame : 1);++frame_count)
       {
+         log_message(-1, "[libretro-core.c] Retro Run: Entering main cpu loop.\n");
          while(cpuloop==1)
             maincpu_mainloop_retro();
          cpuloop=1;
 
+         log_message(-1, "[libretro-core.c] Retro Run: Finished main cpu loop.  Checking frame count for non zero\n");
+
          if (!frame_count)
          {
+            log_message(-1, "[libretro-core.c] Retro Run: Frame count in non zero.  Getting time.\n");
+         
             retro_time_t t_end=pcb.get_time_usec();
             t_end_prev=t_end;
             if (!(t_frame=MIN(t_end-t_begin, 20000)))
@@ -4261,6 +4282,8 @@ void retro_run(void)
          }
       }
    }
+
+   log_message(-1, "[libretro-core.c] Retro Run: Done with frame count loop.  Checking if we need to render the app with the VKEY\n");
 
    /* Show VKBD */
    if (SHOWKEY==1) app_render();
@@ -4272,12 +4295,16 @@ void retro_run(void)
       retroYS_offset = zoomed_YS_offset;
    }
 
+   log_message(-1, "[libretro-core.c] Retro Run: Checking if we need to reset the mouse position\n");
+
    /* Virtual keyboard mouse position reset */
    if (request_reset_mouse_pos)
    {
       request_reset_mouse_pos = false;
       reset_mouse_pos();
    }
+
+   log_message(-1, "[libretro-core.c] Retro Run: Checking volume counter\n");
 
    /* Set volume back to maximum after starting with mute, due to ReSID 6581 init pop */
    if (sound_volume_counter > 0)
@@ -4290,6 +4317,8 @@ void retro_run(void)
    /* Statusbar disk display timer */
    if (imagename_timer > 0)
       imagename_timer--;
+
+   log_message(-1, "[libretro-core.c] Retro Run: Executing video call back.\n");
 
    video_cb(Retro_Screen+(retroXS_offset*pix_bytes/2)+(retroYS_offset*(retrow<<(pix_bytes/4))), zoomed_width, zoomed_height, retrow<<(pix_bytes/2));
    microSecCounter += (1000000/(retro_get_region() == RETRO_REGION_NTSC ? C64_NTSC_RFSH_PER_SEC : C64_PAL_RFSH_PER_SEC));
