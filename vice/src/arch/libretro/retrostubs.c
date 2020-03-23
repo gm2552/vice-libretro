@@ -92,7 +92,6 @@ void emu_function(int function)
             if (cur_port>2) 
             {
                cur_port = 1;
-               log_message(-1,"[retrostubs.c] Setting cur_port EMU_JOYPORT with value 1");
             }
             break;
         case EMU_RESET:
@@ -438,9 +437,12 @@ int Core_PollEvent(int disable_physical_cursor_keys)
                     if (SHOWKEY==1 && (i==RETRO_DEVICE_ID_JOYPAD_B || i==RETRO_DEVICE_ID_JOYPAD_A || i==RETRO_DEVICE_ID_JOYPAD_SELECT))
                         continue;
 
-                    if (input_state_cb(j, RETRO_DEVICE_JOYPAD, 0, i) && jbt[j][i]==0 && i!=turbo_fire_button)
+                    int16_t inputState = input_state_cb(j, RETRO_DEVICE_JOYPAD, 0, i);
+					log_message(-1,"[retrostubs.c] State of button %d on joystick %d: %d.\n", i, j, inputState);
+
+                    if (inputState && jbt[j][i]==0 && i!=turbo_fire_button)
                         just_pressed = 1;
-                    else if (!input_state_cb(j, RETRO_DEVICE_JOYPAD, 0, i) && jbt[j][i]==1 && i!=turbo_fire_button)
+                    else if (!inputState && jbt[j][i]==1 && i!=turbo_fire_button)
                         just_released = 1;
                 }
                 else if (i >= 16) /* Remappable RetroPad analog stick directions */

@@ -463,7 +463,7 @@ static int process_cmdline(const char* argv)
         joystick_control = check_joystick_control(argv);
         if (joystick_control)
         {
-            log_message(-1,"[libretro-core.c] Setting cur_port from joystick_control with value %d", joystick_control);
+            //log_message(-1,"[libretro-core.c] Setting cur_port from joystick_control with value %d", joystick_control);
             cur_port = joystick_control;
             cur_port_locked = 1;
         }
@@ -575,13 +575,13 @@ static int process_cmdline(const char* argv)
             // Was strstr, but I don't see the point
             else if (strcmp(arg, "-j1") == 0)
             {
-                log_message(-1,"[libretro-core.c] Setting cur_port from command line with value 1");
+                //log_message(-1,"[libretro-core.c] Setting cur_port from command line with value 1");
                 cur_port = 1;
                 cur_port_locked = 1;
             }
             else if (strcmp(arg, "-j2") == 0)
             {
-                log_message(-1,"[libretro-core.c] Setting cur_port from command line with value 2");
+                //log_message(-1,"[libretro-core.c] Setting cur_port from command line with value 2");
                 cur_port = 2;
                 cur_port_locked = 1;
             }
@@ -3734,7 +3734,7 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 
 void retro_init(void)
 {
-   log_message(-1, "[libretro-core.c] Retro Init: Initializing core.");
+   //log_message(-1, "[libretro-core.c] Retro Init: Initializing core.");
 
    struct retro_log_callback log;
 
@@ -3848,12 +3848,12 @@ void retro_init(void)
    if (log_cb)
      log_cb(RETRO_LOG_INFO, "[libretro-core.c] Retro Init: Initializing complete.");
      
-   log_message(-1, "[libretro-core.c] Retro Init: Initializing complete.");
+   //log_message(-1, "[libretro-core.c] Retro Init: Initializing complete.");
 }
 
 void retro_deinit(void)
 {
-   log_message(-1, "[libretro-core.c] Retro deinit: Deinitializing core.");
+   //log_message(-1, "[libretro-core.c] Retro deinit: Deinitializing core.");
 
    /* Clean the disk control context */
    if (dc)
@@ -3863,7 +3863,7 @@ void retro_deinit(void)
 	   free(core_options_legacy_strings);
    }
    
-   log_message(-1, "[libretro-core.c] Retro deinit: Completed deinitializing core.");
+   //log_message(-1, "[libretro-core.c] Retro deinit: Completed deinitializing core.");
 }
 
 unsigned retro_api_version(void)
@@ -3873,16 +3873,16 @@ unsigned retro_api_version(void)
 
 void retro_set_controller_port_device( unsigned port, unsigned device )
 {
-   log_message(-1, "[libretro-core.c] Retro set controller port device: Setting up port device.");
+   //log_message(-1, "[libretro-core.c] Retro set controller port device: Setting up port device.");
    if (port < 5)
       vice_devices[port] = device;
       
-   log_message(-1, "[libretro-core.c] Retro set controller port device: Completed setting up port device.");
+   //log_message(-1, "[libretro-core.c] Retro set controller port device: Completed setting up port device.");
 }
 
 void retro_get_system_info(struct retro_system_info *info)
 {
-   log_message(-1, "[libretro-core.c] Retro get system info: Initializing gathering of system info.");
+   //log_message(-1, "[libretro-core.c] Retro get system info: Initializing gathering of system info.");
 
 #ifndef GIT_VERSION
 #define GIT_VERSION ""
@@ -3898,12 +3898,12 @@ void retro_get_system_info(struct retro_system_info *info)
    info->need_fullpath    = true;
    info->block_extract    = false;
    
-   log_message(-1, "[libretro-core.c] Retro get system info: Completed gathering of system info.");
+   //log_message(-1, "[libretro-core.c] Retro get system info: Completed gathering of system info.");
 }
 
 double retro_get_aspect_ratio(unsigned int width, unsigned int height)
 {
-   log_message(-1, "[libretro-core.c] Retro get aspect ratio: Initializing gathering of aspect ratio.");
+   //log_message(-1, "[libretro-core.c] Retro get aspect ratio: Initializing gathering of aspect ratio.");
 
    static double ar;
    #if defined(__X64__) || defined(__X64SC__) || defined(__X128__)
@@ -3923,7 +3923,7 @@ double retro_get_aspect_ratio(unsigned int width, unsigned int height)
          ar = ((float)width / (float)height) * (float)1.03743478;
    #endif
    
-   log_message(-1, "[libretro-core.c] Retro get aspect ratio: Completed gathering of aspect ratio.");
+   //log_message(-1, "[libretro-core.c] Retro get aspect ratio: Completed gathering of aspect ratio.");
    
    return ar;
 }
@@ -4071,7 +4071,7 @@ void update_geometry(int mode)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   log_message(-1, "[libretro-core.c] Retro get system av info: Initializing gathering av info.");
+   //log_message(-1, "[libretro-core.c] Retro get system av info: Initializing gathering av info.");
 
    /* need to do this here because core option values are not available in retro_init */
    if (pix_bytes == 4)
@@ -4111,47 +4111,47 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
          break;
    }
    
-   log_message(-1, "[libretro-core.c] Retro get system av info: Completed gathering av info.");
+   //log_message(-1, "[libretro-core.c] Retro get system av info: Completed gathering av info.");
 }
 
 void retro_set_video_refresh(retro_video_refresh_t cb)
 {
-   log_message(-1, "[libretro-core.c] Retro set video refresh.");
+   //log_message(-1, "[libretro-core.c] Retro set video refresh.");
 
    video_cb = cb;
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
 {
-   log_message(-1, "[libretro-core.c] Retro set audio sample.");
+   //log_message(-1, "[libretro-core.c] Retro set audio sample.");
 
    audio_cb = cb;
 }
 
 void retro_audio_cb(short l, short r)
 {
-   log_message(-1, "[libretro-core.c] Retro audio cb.");
+   //log_message(-1, "[libretro-core.c] Retro audio cb.");
 
    audio_cb(l, r);
 }
 
 void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
 {
-   log_message(-1, "[libretro-core.c] Retro set audo sample batch.");
+   //log_message(-1, "[libretro-core.c] Retro set audo sample batch.");
    
    audio_batch_cb = cb;
 }
 
 void retro_audio_batch_cb(const int16_t *data, size_t frames)
 {
-   log_message(-1, "[libretro-core.c] Retro audo batch cb.");
+   //log_message(-1, "[libretro-core.c] Retro audo batch cb.");
 
    audio_batch_cb(data, frames);
 }
 
 void retro_audio_render(signed short int *sound_buffer, int sndbufsize)
 {
-   log_message(-1, "[libretro-core.c] Retro audio render: Intializing rendering of audio buffer");
+   //log_message(-1, "[libretro-core.c] Retro audio render: Intializing rendering of audio buffer");
 
    int x;
 #if 1
@@ -4159,7 +4159,7 @@ void retro_audio_render(signed short int *sound_buffer, int sndbufsize)
 #else
    //FIXME audio_batch_cb(sound_buffer, sndbufsize);
 #endif
-   log_message(-1, "[libretro-core.c] Retro audio render: Completed rendering of audio buffer");
+   //log_message(-1, "[libretro-core.c] Retro audio render: Completed rendering of audio buffer");
 
 }
 
@@ -4167,7 +4167,7 @@ void retro_audio_render(signed short int *sound_buffer, int sndbufsize)
 
 void retro_run(void)
 {
-   log_message(-1, "[libretro-core.c] Retro Run: Start of frame loop.");
+   //log_message(-1, "[libretro-core.c] Retro Run: Start of frame loop.");
 
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
@@ -4213,7 +4213,7 @@ void retro_run(void)
    if (runstate == RUNSTATE_FIRST_START)
    {
       /* this is only done once after just loading the core from scratch and starting it */
-      log_message(-1, "[libretro-core.c] Retro Run: First time we return from retro_run()\n");
+      //log_message(-1, "[libretro-core.c] Retro Run: First time we return from retro_run()\n");
 #ifdef RETRO_DEBUG
       log_cb(RETRO_LOG_INFO, "First time we return from retro_run()!\n");
 #endif
@@ -4227,7 +4227,7 @@ void retro_run(void)
    else if (runstate == RUNSTATE_LOADED_CONTENT)
    {
    
-      log_message(-1, "[libretro-core.c] Retro Run: App in running state.  Preparing to reload and restart.\n");
+      //log_message(-1, "[libretro-core.c] Retro Run: App in running state.  Preparing to reload and restart.\n");
       /* Load content was called while core was already running, just do a reset with autostart */
       reload_restart();
       /* After retro_load_game, get_system_av_info is always called by the frontend */
@@ -4238,42 +4238,42 @@ void retro_run(void)
    } 
 
 
-   log_message(-1, "[libretro-core.c] Retro Run: Preparing to poll events.\n");
+   //log_message(-1, "[libretro-core.c] Retro Run: Preparing to poll events.\n");
    /* Input poll */
    retro_poll_event();
 
-   log_message(-1, "[libretro-core.c] Retro Run: Poll event completed.  Determining delay timing since last frame was rendered.\n");
+   //log_message(-1, "[libretro-core.c] Retro Run: Poll event completed.  Determining delay timing since last frame was rendered.\n");
 
    /* Measure frame-time and time between frames to render as much frames as possible when warp is enabled. Does not work
       perfectly as the time needed by the framework cannot be accounted, but should not reduce amount of actually rendered
       frames too much. */
    {
-      log_message(-1, "[libretro-core.c] Retro Run: Getting perf interface for time purpose\n");
+      //log_message(-1, "[libretro-core.c] Retro Run: Getting perf interface for time purpose\n");
       static struct retro_perf_callback pcb;
       //if (!pcb.get_time_usec)
          environ_cb(RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &pcb);
 
       static retro_time_t t_frame=1, t_end_prev=0;
 
-      log_message(-1, "[libretro-core.c] Retro Run: Perf interface obtained.  Getting time.\n");
-      retro_time_t t_begin=pcb.get_time_usec();
+      //log_message(-1, "[libretro-core.c] Retro Run: Perf interface obtained.  Getting time.\n");
+      retro_time_t t_begin= getTimeStamp();//pcb.get_time_usec();
       retro_time_t t_interframe=MIN((t_end_prev ? t_begin-t_end_prev : 0), 20000-t_frame);
 
-      log_message(-1, "[libretro-core.c] Retro Run: Entering frame count loop.\n");
+      //log_message(-1, "[libretro-core.c] Retro Run: Entering frame count loop.\n");
       for (int frame_count=0;frame_count<(retro_warp_mode_enabled() ? (t_interframe+t_frame)/t_frame : 1);++frame_count)
       {
-         log_message(-1, "[libretro-core.c] Retro Run: Entering main cpu loop.\n");
+         //log_message(-1, "[libretro-core.c] Retro Run: Entering main cpu loop.\n");
          while(cpuloop==1)
             maincpu_mainloop_retro();
          cpuloop=1;
 
-         log_message(-1, "[libretro-core.c] Retro Run: Finished main cpu loop.  Checking frame count for non zero\n");
+         //log_message(-1, "[libretro-core.c] Retro Run: Finished main cpu loop.  Checking frame count for non zero\n");
 
          if (!frame_count)
          {
-            log_message(-1, "[libretro-core.c] Retro Run: Frame count in non zero.  Getting time.\n");
+            //log_message(-1, "[libretro-core.c] Retro Run: Frame count in non zero.  Getting time.\n");
          
-            retro_time_t t_end=pcb.get_time_usec();
+            retro_time_t t_end=  getTimeStamp();//pcb.get_time_usec();
             t_end_prev=t_end;
             if (!(t_frame=MIN(t_end-t_begin, 20000)))
                /* It was seen with x64 that mainloop actually returned within one nanosecond, so make sure
@@ -4283,7 +4283,7 @@ void retro_run(void)
       }
    }
 
-   log_message(-1, "[libretro-core.c] Retro Run: Done with frame count loop.  Checking if we need to render the app with the VKEY\n");
+   //log_message(-1, "[libretro-core.c] Retro Run: Done with frame count loop.  Checking if we need to render the app with the VKEY\n");
 
    /* Show VKBD */
    if (SHOWKEY==1) app_render();
@@ -4295,7 +4295,7 @@ void retro_run(void)
       retroYS_offset = zoomed_YS_offset;
    }
 
-   log_message(-1, "[libretro-core.c] Retro Run: Checking if we need to reset the mouse position\n");
+   //log_message(-1, "[libretro-core.c] Retro Run: Checking if we need to reset the mouse position\n");
 
    /* Virtual keyboard mouse position reset */
    if (request_reset_mouse_pos)
@@ -4304,7 +4304,7 @@ void retro_run(void)
       reset_mouse_pos();
    }
 
-   log_message(-1, "[libretro-core.c] Retro Run: Checking volume counter\n");
+   //log_message(-1, "[libretro-core.c] Retro Run: Checking volume counter\n");
 
    /* Set volume back to maximum after starting with mute, due to ReSID 6581 init pop */
    if (sound_volume_counter > 0)
@@ -4318,17 +4318,17 @@ void retro_run(void)
    if (imagename_timer > 0)
       imagename_timer--;
 
-   log_message(-1, "[libretro-core.c] Retro Run: Executing video call back.\n");
+   //log_message(-1, "[libretro-core.c] Retro Run: Executing video call back.\n");
 
    video_cb(Retro_Screen+(retroXS_offset*pix_bytes/2)+(retroYS_offset*(retrow<<(pix_bytes/4))), zoomed_width, zoomed_height, retrow<<(pix_bytes/2));
    microSecCounter += (1000000/(retro_get_region() == RETRO_REGION_NTSC ? C64_NTSC_RFSH_PER_SEC : C64_PAL_RFSH_PER_SEC));
    
-   log_message(-1, "[libretro-core.c] Retro Run: Completed frame loop.");
+   //log_message(-1, "[libretro-core.c] Retro Run: Completed frame loop.");
 }
 
 bool retro_load_game(const struct retro_game_info *info)
 {
-   log_message(-1, "[libretro-core.c] Retro load game: Initializing load of game.");
+   //log_message(-1, "[libretro-core.c] Retro load game: Initializing load of game.");
 
    if (info)
    {
@@ -4339,7 +4339,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
 #if defined(__VIC20__)
    /* Moved this here so it also applies without loading content */
-   log_message(-1,"[libretro-core.c] Setting cur_port from load_game with value 1");
+   //log_message(-1,"[libretro-core.c] Setting cur_port from load_game with value 1");
    cur_port = 1;
    cur_port_locked = 1;
 #endif
@@ -4352,40 +4352,40 @@ bool retro_load_game(const struct retro_game_info *info)
       runstate = RUNSTATE_LOADED_CONTENT;
    }
 
-   log_message(-1, "[libretro-core.c] Retro load game: Completed loading of game.");
+   //log_message(-1, "[libretro-core.c] Retro load game: Completed loading of game.");
 
    return true;
 }
 
 void retro_unload_game(void)
 {
-   log_message(-1, "[libretro-core.c] Retro unload game: Starting unload of game.");
+   //log_message(-1, "[libretro-core.c] Retro unload game: Starting unload of game.");
 
-   log_message(-1, "[libretro-core.c] Retro unload game: Detach file system disk.");
+   //log_message(-1, "[libretro-core.c] Retro unload game: Detach file system disk.");
    file_system_detach_disk(8);
-   log_message(-1, "[libretro-core.c] Retro unload game: Detach tape image.");
+   //log_message(-1, "[libretro-core.c] Retro unload game: Detach tape image.");
    tape_image_detach(1);
 #ifndef __PET__
-   log_message(-1, "[libretro-core.c] Retro unload game: Detach cartridge image.");
+   //log_message(-1, "[libretro-core.c] Retro unload game: Detach cartridge image.");
    cartridge_detach_image(-1);
 #endif
 
-   log_message(-1, "[libretro-core.c] Retro unload game: Reset dc.");
+   //log_message(-1, "[libretro-core.c] Retro unload game: Reset dc.");
    dc_reset(dc);
    
-   log_message(-1, "[libretro-core.c] Retro unload game: Free autostart string.");
+   //log_message(-1, "[libretro-core.c] Retro unload game: Free autostart string.");
    free(autostartString);
    autostartString = NULL;
    
-   log_message(-1, "[libretro-core.c] Retro unload game: Starting unload of game.");
+   //log_message(-1, "[libretro-core.c] Retro unload game: Starting unload of game.");
 }
 
 unsigned retro_get_region(void)
 {
-   log_message(-1, "[libretro-core.c] Retro get region: Starting region calculation.");
+   //log_message(-1, "[libretro-core.c] Retro get region: Starting region calculation.");
 
 #if defined(__PET__) || defined(__XSCPU64__)
-   log_message(-1, "[libretro-core.c] Retro get region: Completed region calculation.");
+   //log_message(-1, "[libretro-core.c] Retro get region: Completed region calculation.");
    return RETRO_REGION_PAL;
 #else
    switch (RETROC64MODL)
@@ -4416,11 +4416,11 @@ unsigned retro_get_region(void)
       case C64MODEL_C64SX_NTSC:
       case C64MODEL_PET64_NTSC:
 #endif
-         log_message(-1, "[libretro-core.c] Retro get region: Completed region calculation.");
+         //log_message(-1, "[libretro-core.c] Retro get region: Completed region calculation.");
          return RETRO_REGION_NTSC;
          break;
       default:
-         log_message(-1, "[libretro-core.c] Retro get region: Completed region calculation.");
+         //log_message(-1, "[libretro-core.c] Retro get region: Completed region calculation.");
          return RETRO_REGION_PAL;
          break;
    }
@@ -4466,7 +4466,7 @@ static void load_trap(uint16_t addr, void *success)
 
 size_t retro_serialize_size(void)
 {
-   log_message(-1, "[libretro-core.c] Retro serialize size: Intializing serialization of size");
+   //log_message(-1, "[libretro-core.c] Retro serialize size: Intializing serialization of size");
 
    long snapshot_size = 0;
    if (retro_ui_finalized)
@@ -4493,14 +4493,14 @@ size_t retro_serialize_size(void)
       }
    }
    
-   log_message(-1, "[libretro-core.c] Retro serialize size: Completed serialization of size");
+   //log_message(-1, "[libretro-core.c] Retro serialize size: Completed serialization of size");
    
    return snapshot_size;
 }
 
 bool retro_serialize(void *data_, size_t size)
 {
-   log_message(-1, "[libretro-core.c] Retro serialize: Intializing serialization.");
+   //log_message(-1, "[libretro-core.c] Retro serialize: Intializing serialization.");
 
    if (retro_ui_finalized)
    {
@@ -4517,20 +4517,20 @@ bool retro_serialize(void *data_, size_t size)
       }
       if (success)
       {
-         log_message(-1, "[libretro-core.c] Retro serialize: Completed serialization.");
+         //log_message(-1, "[libretro-core.c] Retro serialize: Completed serialization.");
          return true;
       }
       log_cb(RETRO_LOG_INFO, "Failed to serialize snapshot\n");
    }
    
    
-   log_message(-1, "[libretro-core.c] Retro serialize: Completed serialization.");
+   //log_message(-1, "[libretro-core.c] Retro serialize: Completed serialization.");
    return false;
 }
 
 bool retro_unserialize(const void *data_, size_t size)
 {
-   log_message(-1, "[libretro-core.c] Retro unserialize: Intializing deserialization.");
+   //log_message(-1, "[libretro-core.c] Retro unserialize: Intializing deserialization.");
 
    if (retro_ui_finalized)
    {
@@ -4548,19 +4548,19 @@ bool retro_unserialize(const void *data_, size_t size)
       }
       if (success)
       {
-         log_message(-1, "[libretro-core.c] Retro unserialize: Completed deserialization.");
+         //log_message(-1, "[libretro-core.c] Retro unserialize: Completed deserialization.");
          return true;
       }
       log_cb(RETRO_LOG_INFO, "Failed to unserialize snapshot\n");
    }
    
-   log_message(-1, "[libretro-core.c] Retro unserialize: Completed deserialization.");
+   //log_message(-1, "[libretro-core.c] Retro unserialize: Completed deserialization.");
    return false;
 }
 
 void *retro_get_memory_data(unsigned id)
 {
-   log_message(-1, "[libretro-core.c] Retro get memory data.");
+   //log_message(-1, "[libretro-core.c] Retro get memory data.");
 
    if (id == RETRO_MEMORY_SYSTEM_RAM)
       return mem_ram;
@@ -4569,7 +4569,7 @@ void *retro_get_memory_data(unsigned id)
 
 size_t retro_get_memory_size(unsigned id)
 {
-   log_message(-1, "[libretro-core.c] Retro get memory size.");
+   //log_message(-1, "[libretro-core.c] Retro get memory size.");
 
    if (id == RETRO_MEMORY_SYSTEM_RAM)
       return g_mem_ram_size;
