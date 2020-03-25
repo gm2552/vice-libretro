@@ -438,7 +438,7 @@ int Core_PollEvent(int disable_physical_cursor_keys)
                         continue;
 
                     int16_t inputState = input_state_cb(j, RETRO_DEVICE_JOYPAD, 0, i);
-					log_message(-1,"[retrostubs.c] State of button %d on joystick %d: %d.\n", i, j, inputState);
+					//log_message(-1,"[retrostubs.c] State of button %d on joystick %d: %d.\n", i, j, inputState);
 
                     if (inputState && jbt[j][i]==0 && i!=turbo_fire_button)
                         just_pressed = 1;
@@ -498,7 +498,7 @@ int Core_PollEvent(int disable_physical_cursor_keys)
                     }
                     
                     log_message(-1,"[retrostubs.c] Joystick button just pressed from joy pad %d from button index %d.\n", j, i);
-                    log_message(-1,"[retrostubs.c] Cur joystick port: %d\n", cur_port);
+                    //log_message(-1,"[retrostubs.c] Cur joystick port: %d\n", cur_port);
 
                     if (mapper_keys[i] == mapper_keys[24]) /* Virtual keyboard */
                         emu_function(EMU_VKBD);
@@ -576,6 +576,8 @@ int Core_PollEvent(int disable_physical_cursor_keys)
 
 void retro_poll_event()
 {
+    //log_message(-1,"[retrostubs.c] retro_poll_event: Device 1 type: %d    Device 2 Type: %d.\n", vice_devices[0], vice_devices[1]);
+
     /* If RetroPad is controlled with keyboard keys, then prevent RetroPad from generating */
     /* keyboard key presses, this prevents cursor up from becoming a run/stop input */
     if ((vice_devices[0] == RETRO_DEVICE_VICE_JOYSTICK || vice_devices[0] == RETRO_DEVICE_JOYPAD) && TABON==-1 &&

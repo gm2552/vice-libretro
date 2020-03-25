@@ -3735,6 +3735,9 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 void retro_init(void)
 {
    //log_message(-1, "[libretro-core.c] Retro Init: Initializing core.");
+   vice_devices[0] = RETRO_DEVICE_JOYPAD;
+   vice_devices[1] = RETRO_DEVICE_JOYPAD;
+
 
    struct retro_log_callback log;
 
@@ -3873,11 +3876,11 @@ unsigned retro_api_version(void)
 
 void retro_set_controller_port_device( unsigned port, unsigned device )
 {
-   //log_message(-1, "[libretro-core.c] Retro set controller port device: Setting up port device.");
+   log_message(-1, "[libretro-core.c] Retro set controller port device: Setting up port device.");
    if (port < 5)
       vice_devices[port] = device;
       
-   //log_message(-1, "[libretro-core.c] Retro set controller port device: Completed setting up port device.");
+   log_message(-1, "[libretro-core.c] Retro set controller port device: Completed setting up port device.");
 }
 
 void retro_get_system_info(struct retro_system_info *info)
